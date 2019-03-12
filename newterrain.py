@@ -12,18 +12,19 @@ class terrain(object):
         self.w.setGeometry(0, 110, 800, 800)
         self.w.show()
         self.w.setWindowTitle('Terrain')
-        self.w.setCameraPosition(distance=30, elevation=8)
-
+        self.w.setCameraPosition(distance=300, elevation=8)
+        np.seterr(divide='ignore', invalid='ignore')
         self.tmp = OpenSimplex()  # for perlin noise function (smoother heights)
-
+        self.offset = .28
         self.count = 1  # random constants
-        self.y = range(-30, 33, self.count)
-        self.x = range(-30, 33, self.count)
+        self.y = range(-300, 300, self.count)
+        self.x = range(-300, 300, self.count)
         self.sides = len(self.x)  # or y if they are not equal depending on desired size
-        vertList = np.array([[x, y, self.tmp.noise2d(x=n/4 + .2, y=m/4 + .2)]for n, x in enumerate(self.x) for m, y in enumerate(self.y)], dtype=np.float32)
+        self.full = len(self.x)
+        r = 100
+        vertList = np.array([[x, y, r * (self.tmp.noise2d(x=m / 70 + self.offset, y=n / 70 + self.offset))]for n, x in enumerate(self.x) for m, y in enumerate(self.y)], dtype=np.float32)
         thisgrid = gl.GLGridItem()  # generate mesh grid and add it to the window (w)
-        thisgrid.scale(20, 20, 20)
-        self.w.addItem(thisgrid)
+        thisgrid.scale(3, 3, 3)
         sides = []
         colors = []
         """
@@ -40,12 +41,12 @@ class terrain(object):
             for n in range(self.sides - 1):  # loop to generate verices
                 sides.append([n + ystep, n + ystep + self.sides, n + ystep + self.sides + 1])
                 sides.append([n + ystep, n + ystep + 1, n + ystep + self.sides + 1])
-                colors.append([25, 25, 25, .3])
-                colors.append([0, 0, 0, .3])
+                colors.append([255, 255, 255, 0])
+                colors.append([255, 255, 255, 0])
         sides = np.array(sides)
-        peter = np.array(colors)
-        self.mesh = gl.GLMeshItem(vertexes=vertList, faces=sides, faceColors=peter, smooth=True, drawEdges=False)
-        self.mesh.setGLOptions('opaque')
+        colors = np.array(colors)
+        self.mesh = gl.GLMeshItem(vertexes=vertList, faces=sides, faceColors=colors, smooth=True, drawEdges=True)
+        self.mesh.setGLOptions('translucent')
         self.w.addItem(self.mesh)
 
     def start(self):
